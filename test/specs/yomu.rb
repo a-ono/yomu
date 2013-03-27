@@ -12,114 +12,88 @@ describe Yomu do
     it 'reads text' do
       text = Yomu.read :text, data
 
-      assert_includes text, 'The quick brown fox jumped over the lazy cat.'
+      text.should be_include('The quick brown fox jumped over the lazy cat.')
     end
 
     it 'reads metadata' do
       metadata = Yomu.read :metadata, data
 
-      assert_equal 'application/vnd.apple.pages', metadata['Content-Type']
+      metadata['Content-Type'].should == 'application/vnd.apple.pages'
     end
 
     it 'accepts metadata with colon' do
       metadata = Yomu.read :metadata, doc
-      assert_equal 'problem: test', metadata['dc:title']
+      metadata['dc:title'].should == 'problem: test'
     end
   end
 
   describe '.new' do
     it 'requires parameters' do
-      assert_raises ArgumentError do
-        Yomu.new
-      end
+      expect { Yomu.new }.to raise_error(ArgumentError)
     end
 
     it 'accepts a root path' do
-      yomu = nil
+      yomu = Yomu.new 'test/samples/sample.pages'
 
-      assert_silent do
-        yomu = Yomu.new 'test/samples/sample.pages'
-      end
-
-      assert yomu.path?
-      refute yomu.uri?
-      refute yomu.stream?
+      yomu.path?.should be_true
+      yomu.uri?.should be_false
+      yomu.stream?.should be_false
     end
 
     it 'accepts a relative path' do
-      yomu = nil
+      yomu = Yomu.new 'test/samples/sample.pages'
 
-      assert_silent do
-        yomu = Yomu.new 'test/samples/sample.pages'
-      end
-
-      assert yomu.path?
-      refute yomu.uri?
-      refute yomu.stream?
+      yomu.path?.should be_true
+      yomu.uri?.should be_false
+      yomu.stream?.should be_false
     end
 
     it 'accepts a path with spaces' do
-      yomu = nil
+      yomu = Yomu.new 'test/samples/sample filename with spaces.pages'
 
-      assert_silent do
-        yomu = Yomu.new 'test/samples/sample filename with spaces.pages'
-      end
-
-      assert yomu.path?
-      refute yomu.uri?
-      refute yomu.stream?
+      yomu.path?.should be_true
+      yomu.uri?.should be_false
+      yomu.stream?.should be_false
     end
 
     it 'accepts a URI' do
-      yomu = nil
+      yomu = Yomu.new 'http://svn.apache.org/repos/asf/poi/trunk/test-data/document/sample.docx'
 
-      assert_silent do
-        yomu = Yomu.new 'http://svn.apache.org/repos/asf/poi/trunk/test-data/document/sample.docx'
-      end
-
-      assert yomu.uri?
-      refute yomu.path?
-      refute yomu.stream?
+      yomu.uri?.should be_true
+      yomu.path?.should be_false
+      yomu.stream?.should be_false
     end
 
     it 'accepts a stream or object that can be read' do
-      yomu = nil
-
-      assert_silent do
-        File.open 'test/samples/sample.pages', 'r' do |file|
-          yomu = Yomu.new file
-        end
+      yomu = File.open 'test/samples/sample.pages', 'r' do |file|
+        Yomu.new file
       end
 
-      assert yomu.stream?
-      refute yomu.path?
-      refute yomu.uri?
+      yomu.stream?.should be_true
+      yomu.uri?.should be_false
+      yomu.path?.should be_false
     end
 
     it 'does not accept a path to a missing file' do
-      assert_raises Errno::ENOENT do
-        Yomu.new 'test/sample/missing.pages'
-      end
+      expect { Yomu.new 'test/sample/missing.pages' }.to raise_error(Errno::ENOENT)
     end
 
     it 'does not accept other objects' do
       [nil, 1, 1.1].each do |object|
-        assert_raises TypeError do
-          Yomu.new object
-        end
+        expect { Yomu.new object }.to raise_error(TypeError)
       end
     end
   end
 
   describe '.java' do
     specify 'with no specified JAVA_HOME' do
-      assert_equal 'java', Yomu.send(:java)
+      Yomu.send(:java).should == 'java'
     end
 
     specify 'with a specified JAVA_HOME' do
       ENV['JAVA_HOME'] = '/path/to/java/home'
 
-      assert_equal '/path/to/java/home/bin/java', Yomu.send(:java)
+      Yomu.send(:java).should == '/path/to/java/home/bin/java'
     end
   end
 
@@ -127,11 +101,11 @@ describe Yomu do
     let(:yomu) { Yomu.new 'test/samples/sample.pages' }
 
     specify '#text reads text' do
-      assert_includes yomu.text, 'The quick brown fox jumped over the lazy cat.'
+      yomu.text.should be_include('The quick brown fox jumped over the lazy cat.')
     end
 
     specify '#metada reads metadata' do
-      assert_equal 'application/vnd.apple.pages', yomu.metadata['Content-Type']
+      yomu.metadata['Content-Type'].should == 'application/vnd.apple.pages'
     end
   end
 
@@ -139,11 +113,11 @@ describe Yomu do
     let(:yomu) { Yomu.new 'http://svn.apache.org/repos/asf/poi/trunk/test-data/document/sample.docx' }
 
     specify '#text reads text' do
-      assert_includes yomu.text, 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit.'
+      yomu.text.should be_include('Lorem ipsum dolor sit amet, consectetuer adipiscing elit.')
     end
 
     specify '#metadata reads metadata' do
-      assert_equal 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', yomu.metadata['Content-Type']
+      yomu.metadata['Content-Type'].should == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     end
   end
 
@@ -151,11 +125,11 @@ describe Yomu do
     let(:yomu) { Yomu.new File.open('test/samples/sample.pages', 'rb') }
 
     specify '#text reads text' do
-      assert_includes yomu.text, 'The quick brown fox jumped over the lazy cat.'
+      yomu.text.should be_include('The quick brown fox jumped over the lazy cat.')
     end
 
     specify '#metadata reads metadata' do
-      assert_equal 'application/vnd.apple.pages', yomu.metadata['Content-Type']
+      yomu.metadata['Content-Type'].should == 'application/vnd.apple.pages'
     end
   end
 end
