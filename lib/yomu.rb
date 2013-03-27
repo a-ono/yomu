@@ -22,7 +22,7 @@ class Yomu
       '-m'
     end
 
-    result = IO.popen "#{java} -Djava.awt.headless=true -jar #{Yomu::JARPATH} #{switch}", 'r+' do |io|
+    result = IO.popen "#{java} -Djava.awt.headless=true -jar #{Yomu::JARPATH} --encoding=UTF-8 #{switch}", 'r+' do |io|
       if file_or_data.is_a?(File)
         IO.copy_stream(file_or_data, io)
       else
