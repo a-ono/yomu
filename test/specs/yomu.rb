@@ -1,6 +1,7 @@
 require_relative '../helper.rb'
 
 describe Yomu do
+  let(:file) { File.new 'test/samples/sample.pages' }
   let(:data) { File.read 'test/samples/sample.pages' }
   let(:doc) { File.read 'test/samples/enclosure_problem.doc' }
 
@@ -12,6 +13,12 @@ describe Yomu do
     it 'reads text' do
       text = Yomu.read :text, data
 
+      text.should be_include('The quick brown fox jumped over the lazy cat.')
+    end
+
+    it 'reads file' do
+      text = Yomu.read :text, file
+      
       text.should be_include('The quick brown fox jumped over the lazy cat.')
     end
 

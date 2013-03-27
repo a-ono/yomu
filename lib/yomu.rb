@@ -7,13 +7,14 @@ class Yomu
   GEMPATH = File.dirname(File.dirname(__FILE__))
   JARPATH = File.join(Yomu::GEMPATH, 'jar', 'tika-app-1.3.jar')
 
-  # Read text or metadata from a data buffer.
+  # Read text or metadata from a file or data buffer.
   #
+  #   file = File.new 'sample.pages'
   #   data = File.read 'sample.pages'
-  #   text = Yomu.read :text, data
+  #   text = Yomu.read :text, file
   #   metadata = Yomu.read :metadata, data
 
-  def self.read(type, data)
+  def self.read(type, file_or_data)
     switch = case type
     when :text
       '-t'
@@ -22,7 +23,11 @@ class Yomu
     end
 
     result = IO.popen "#{java} -Djava.awt.headless=true -jar #{Yomu::JARPATH} #{switch}", 'r+' do |io|
-      io.write data
+      if file_or_data.is_a?(File)
+        IO.copy_stream(file_or_data, io)
+      else
+        io.write file_or_data
+      end
       io.close_write
       io.read
     end
